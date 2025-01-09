@@ -9,8 +9,10 @@ Modified from NVIDIA FasterTransformer: https://github.com/NVIDIA/FasterTransfor
 }
 */
 #include <cuda_fp16.h>
+#include <cuda_bf16.h>
 #pragma once
 
+template <typename T = half>
 __inline__ __device__ void dequantize_s4_to_fp16x2(half2 const &source, uint4 *result)
 {
     // uint4 result;
@@ -73,5 +75,13 @@ __inline__ __device__ void dequantize_s4_to_fp16x2(half2 const &source, uint4 *r
     // Convert elt_67
     asm volatile("fma.rn.f16x2 %0, %1, %2, %3;\n" : "=r"(h[3]) : "r"(h[3]), "r"(ONE_SIXTEENTH), "r"(NEG_64));
 
+    if constexpr (std::is_same<T, nv_bfloat16>::value)
+    {
+#pragma unroll
+      for (uint32_t i = 0; i < 4; i++)
+      {
+        (*(reinterpret_cast<nv_bfloat162 *>(result) + i)) = __float22bfloat162_rn(__half22float2(*(reinterpret_cast<half2 *>(result) + i)));
+      }
+    }
     // return result;
 }
