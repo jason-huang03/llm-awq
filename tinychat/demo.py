@@ -134,6 +134,7 @@ if __name__ == "__main__":
         "llama",
         "falcon",
         "mpt",
+        "qwen",
     ], "We only support llama & falcon & mpt now"
     assert args.precision in ["W4A16", "W16A16"], "We only support W4A16/W16A16 now"
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
         print("=" * 80)
     # TODO (Haotian): a more elegant implementation here.
     # We need to update these global variables before models use them.
-    from tinychat.models import FalconForCausalLM, LlamaForCausalLM, MPTForCausalLM
+    from tinychat.models import FalconForCausalLM, LlamaForCausalLM, MPTForCausalLM, Qwen2ForCausalLM
 
     def skip(*args, **kwargs):
         pass
@@ -177,11 +178,17 @@ if __name__ == "__main__":
         "llama": LlamaForCausalLM,
         "falcon": FalconForCausalLM,
         "mpt": MPTForCausalLM,
+        "qwen": Qwen2ForCausalLM
     }
 
     if args.precision == "W4A16":
         if args.model_type.lower() == "llama":
             model = model_type_dict["llama"](config).half()
+            model = load_awq_llama_fast(
+                model, args.load_quant, 4, args.q_group_size, args.device
+            )
+        elif args.model_type.lower() == "qwen":
+            model = model_type_dict["qwen"](config).half()
             model = load_awq_llama_fast(
                 model, args.load_quant, 4, args.q_group_size, args.device
             )
@@ -209,7 +216,7 @@ if __name__ == "__main__":
     stream_generator = StreamGenerator
 
     # Optimize AWQ quantized model
-    if args.precision == "W4A16" and args.model_type.lower() == "llama":
+    if args.precision == "W4A16" and (args.model_type.lower() == "llama" or args.model_type.lower() == "qwen"):
         from tinychat.modules import make_quant_norm, make_quant_attn
 
         if args.flash_attn:
