@@ -19,6 +19,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
     m.def("gemm_forward_cuda", &gemm_forward_cuda, "Quantized GEMM kernel.");
     m.def("gemv_forward_cuda", &gemv_forward_cuda, "Quantized GEMV kernel.");
     m.def("gemm_forward_cuda_new", &gemm_forward_cuda_new, "New quantized GEMM kernel.");
+    m.def("gemm_forward_cuda_new_bf16", &gemm_forward_cuda_new_bf16, "");
     m.def("gemv_forward_cuda_new", &gemv_forward_cuda_new, "New quantized GEMV kernel.");
     m.def("rotary_embedding_neox", &rotary_embedding_neox, "Apply GPT-NeoX style rotary embedding to query and key");
     m.def("single_query_attention", &single_query_attention, "Attention with a single query",
